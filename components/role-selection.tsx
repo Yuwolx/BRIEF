@@ -40,7 +40,7 @@ export function RoleSelection({ data, onNext }: RoleSelectionProps) {
   }
 
   return (
-    <div className="flex min-h-screen items-start justify-center bg-background px-4 py-12 pt-24">
+    <div className="flex justify-center bg-background px-4 pt-13">
       <div className="w-full max-w-2xl space-y-8">
         <div className="space-y-8 rounded-2xl bg-card p-8 shadow-sm">
           <div className="space-y-5">

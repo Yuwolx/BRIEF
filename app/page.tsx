@@ -105,59 +105,65 @@ export default function Page() {
   return (
     <>
       <LanguageToggle />
+
       <NavigationHeader
         onBack={handleBack}
         onHome={handleHomeClick}
         showBack={step !== "roles"}
       />
+
+      {/* ✅ 홈 이동 확인 모달 (여기 추가) */}
       <HomeConfirmationModal
         open={showHomeConfirm}
         onOpenChange={setShowHomeConfirm}
         onConfirm={handleHomeConfirm}
       />
 
-      {step === "roles" && (
-        <RoleSelection
-          data={formData}
-          onNext={(data) => {
-            updateFormData(data)
-            setStep("context")
-          }}
-        />
-      )}
+      <div className="pt-8">
+        {step === "roles" && (
+          <RoleSelection
+            data={formData}
+            onNext={(data) => {
+              updateFormData(data)
+              setStep("context")
+            }}
+          />
+        )}
 
-      {step === "context" && (
-        <ContextInput
-          data={formData}
-          onNext={(data) => {
-            updateFormData(data)
-            setStep("purpose")
-          }}
-          onSkip={() => setStep("purpose")}
-        />
-      )}
+        {step === "context" && (
+          <ContextInput
+            data={formData}
+            onNext={(data) => {
+              updateFormData(data)
+              setStep("purpose")
+            }}
+            onSkip={() => setStep("purpose")}
+          />
+        )}
 
-      {step === "purpose" && (
-        <RequestPurpose
-          data={formData}
-          onNext={(data) => {
-            updateFormData(data)
-            setStep("clarification")
-          }}
-        />
-      )}
+        {step === "purpose" && (
+          <RequestPurpose
+            data={formData}
+            onNext={(data) => {
+              updateFormData(data)
+              setStep("clarification")
+            }}
+          />
+        )}
 
-      {step === "clarification" && (
-        <AiClarification
-          data={formData}
-          onNext={(data) => {
-            updateFormData(data)
-            setStep("result")
-          }}
-        />
-      )}
+        {step === "clarification" && (
+          <AiClarification
+            data={formData}
+            onNext={(data) => {
+              updateFormData(data)
+              setStep("result")
+            }}
+          />
+        )}
 
-      {step === "result" && <EmailResult data={formData} />}
+        {step === "result" && <EmailResult data={formData} />}
+      </div>
     </>
   )
+
 }

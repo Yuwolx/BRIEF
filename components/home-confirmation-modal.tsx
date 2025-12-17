@@ -25,14 +25,20 @@ export function HomeConfirmationModal({ open, onOpenChange, onConfirm }: HomeCon
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="z-[200]">
         <AlertDialogHeader>
           <AlertDialogTitle>{t.nav.homeConfirmTitle}</AlertDialogTitle>
-          <AlertDialogDescription>{t.nav.homeConfirmMessage}</AlertDialogDescription>
+          <AlertDialogDescription>
+            {t.nav.homeConfirmMessage}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t.nav.homeConfirmCancel}</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>{t.nav.homeConfirmOk}</AlertDialogAction>
+          <AlertDialogCancel>
+            {t.nav.homeConfirmCancel}
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>
+            {t.nav.homeConfirmOk}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
