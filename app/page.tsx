@@ -14,11 +14,18 @@ import { useLanguage } from "@/lib/language-context"
 import { translations } from "@/lib/translations"
 import Image from "next/image"
 
-type Step = "landing" | "roles" | "context" | "purpose" | "clarification" | "result"
+type Step =
+  | "landing"
+  | "roles"
+  | "context"
+  | "purpose"
+  | "clarification"
+  | "result"
 
 export default function Page() {
   const [step, setStep] = useState<Step>("landing")
   const [showHomeConfirm, setShowHomeConfirm] = useState(false)
+
   const [formData, setFormData] = useState({
     myRole: "",
     recipientRole: "",
@@ -28,6 +35,11 @@ export default function Page() {
     contextText: "",
     purpose: "",
     clarifications: {} as Record<string, string | boolean>,
+    uploadedFile: null as null | {
+      name: string
+      content: string
+    },
+    fileSummary: "",
   })
 
   const { uiLanguage } = useLanguage()
@@ -52,6 +64,8 @@ export default function Page() {
       contextText: "",
       purpose: "",
       clarifications: {},
+      uploadedFile: null,
+      fileSummary: "",
     })
     setStep("landing")
     setShowHomeConfirm(false)
@@ -69,7 +83,6 @@ export default function Page() {
       <>
         <LanguageToggle />
         <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
-          {/* 중앙 콘텐츠 */}
           <div className="w-full max-w-5xl space-y-10 text-center">
             <h1
               className={`text-5xl font-semibold tracking-tight text-foreground md:text-6xl ${
@@ -88,14 +101,8 @@ export default function Page() {
             </Button>
           </div>
 
-          {/* 하단 중앙 로고 */}
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 opacity-90">
-            <Image
-              src="/logo.png"
-              alt="BRIEF logo"
-              width={150}
-              height={150}
-            />
+            <Image src="/logo.png" alt="BRIEF logo" width={150} height={150} />
           </div>
         </div>
       </>
@@ -112,7 +119,6 @@ export default function Page() {
         showBack={step !== "roles"}
       />
 
-      {/* ✅ 홈 이동 확인 모달 (여기 추가) */}
       <HomeConfirmationModal
         open={showHomeConfirm}
         onOpenChange={setShowHomeConfirm}
@@ -133,8 +139,32 @@ export default function Page() {
         {step === "context" && (
           <ContextInput
             data={formData}
-            onNext={(data) => {
-              updateFormData(data)
+            onNext={async (data) => {
+              let fileSummary = ""
+
+              if (data.uploadedFile) {
+                try {
+                  const res = await fetch("/api/summarize-file", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      fileName: data.uploadedFile.name,
+                      fileContent: data.uploadedFile.content,
+                    }),
+                  })
+
+                  const result = await res.json()
+                  fileSummary = result.summary || ""
+                } catch (error) {
+                  console.error("Failed to summarize file", error)
+                }
+              }
+
+              updateFormData({
+                ...data,
+                fileSummary,
+              })
+
               setStep("purpose")
             }}
             onSkip={() => setStep("purpose")}
@@ -165,5 +195,4 @@ export default function Page() {
       </div>
     </>
   )
-
 }

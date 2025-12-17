@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -10,18 +9,26 @@ import { useLanguage } from "@/lib/language-context"
 import { translations } from "@/lib/translations"
 import { Upload, X, FileText } from "lucide-react"
 
+interface UploadedFile {
+  name: string
+  content: string
+}
+
 interface ContextInputProps {
   data: {
     contextText: string
-    uploadedFile?: { name: string; content: string }
+    uploadedFile?: UploadedFile
   }
-  onNext: (data: { contextText: string; uploadedFile?: { name: string; content: string } }) => void
+  onNext: (data: { contextText: string; uploadedFile?: UploadedFile }) => void
   onSkip: () => void
 }
 
 export function ContextInput({ data, onNext, onSkip }: ContextInputProps) {
   const [contextText, setContextText] = useState(data.contextText)
-  const [uploadedFile, setUploadedFile] = useState<{ name: string; content: string } | undefined>(data.uploadedFile)
+  const [uploadedFile, setUploadedFile] = useState<UploadedFile | undefined>(
+    data.uploadedFile
+  )
+
   const { uiLanguage } = useLanguage()
   const t = translations[uiLanguage]
 
@@ -29,24 +36,34 @@ export function ContextInput({ data, onNext, onSkip }: ContextInputProps) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Check file type
-    const validTypes = [".pdf", ".docx", ".txt", ".doc"]
-    const fileExtension = file.name.substring(file.name.lastIndexOf("."))
-    if (!validTypes.includes(fileExtension.toLowerCase())) {
-      alert("Please upload PDF, DOCX, or TXT files only")
+    const validExtensions = [".txt", ".pdf", ".docx", ".doc"]
+    const extension = file.name
+      .substring(file.name.lastIndexOf("."))
+      .toLowerCase()
+
+    if (!validExtensions.includes(extension)) {
+      alert("Please upload TXT, PDF, or DOC/DOCX files only")
       return
     }
 
-    // Read file content
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const content = event.target?.result as string
+    // TXT 파일만 실제 내용 읽기 (앞부분만)
+    if (extension === ".txt") {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const content = (event.target?.result as string) || ""
+        setUploadedFile({
+          name: file.name,
+          content: content.slice(0, 4000), // ✅ 핵심: 앞부분만
+        })
+      }
+      reader.readAsText(file)
+    } else {
+      // PDF / DOCX / DOC → 내용 파싱 안 함 (파일명만 참고)
       setUploadedFile({
         name: file.name,
-        content: content,
+        content: "",
       })
     }
-    reader.readAsText(file)
   }
 
   const handleRemoveFile = () => {
@@ -68,13 +85,19 @@ export function ContextInput({ data, onNext, onSkip }: ContextInputProps) {
               onChange={(e) => setContextText(e.target.value)}
               className="min-h-[200px] resize-none"
             />
-            <p className="text-sm text-muted-foreground">{t.context.helper}</p>
+            <p className="text-sm text-muted-foreground">
+              {t.context.helper}
+            </p>
           </div>
 
           <div className="space-y-4 rounded-md border border-border bg-muted/30 p-4">
             <div className="space-y-2">
-              <p className="text-sm font-medium">{t.context.fileUploadHelper}</p>
-              <p className="text-xs text-muted-foreground">{t.context.fileUploadNote}</p>
+              <p className="text-sm font-medium">
+                {t.context.fileUploadHelper}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t.context.fileUploadNote}
+              </p>
             </div>
 
             {uploadedFile ? (
@@ -83,7 +106,12 @@ export function ContextInput({ data, onNext, onSkip }: ContextInputProps) {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">{uploadedFile.name}</span>
                 </div>
-                <Button variant="ghost" size="sm" onClick={handleRemoveFile} className="h-8 w-8 p-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemoveFile}
+                  className="h-8 w-8 p-0"
+                >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -92,14 +120,16 @@ export function ContextInput({ data, onNext, onSkip }: ContextInputProps) {
                 <input
                   type="file"
                   id="file-upload"
-                  accept=".pdf,.docx,.txt,.doc"
+                  accept=".txt,.pdf,.doc,.docx"
                   onChange={handleFileUpload}
                   className="hidden"
                 />
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => document.getElementById("file-upload")?.click()}
+                  onClick={() =>
+                    document.getElementById("file-upload")?.click()
+                  }
                   className="gap-2"
                 >
                   <Upload className="h-4 w-4" />
@@ -111,10 +141,17 @@ export function ContextInput({ data, onNext, onSkip }: ContextInputProps) {
         </div>
 
         <div className="flex gap-4">
-          <Button variant="outline" onClick={onSkip} className="h-12 flex-1 bg-transparent">
+          <Button
+            variant="outline"
+            onClick={onSkip}
+            className="h-12 flex-1 bg-transparent"
+          >
             {t.context.skip}
           </Button>
-          <Button onClick={() => onNext({ contextText, uploadedFile })} className="h-12 flex-1">
+          <Button
+            onClick={() => onNext({ contextText, uploadedFile })}
+            className="h-12 flex-1"
+          >
             {t.context.continue}
           </Button>
         </div>
